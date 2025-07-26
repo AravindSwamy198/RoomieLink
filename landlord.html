@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landlord Dashboard - RoomieLink</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/landlord.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login/Register Section -->
+        <div id="authSection" class="auth-section">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">🏠 RoomieLink</div>
+                    <div class="auth-subtitle" id="authSubtitle">Landlord Login</div>
+                </div>
+                
+                <!-- Tab Toggle -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</button>
+                    <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <button class="btn-auth" onclick="handleLandlordLogin()">Login</button>
+                    
+                    <div class="auth-help">
+                        Don't have an account? <span class="auth-link" onclick="switchAuthTab('register')">Register here</span>
+                    </div>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" class="form-input" placeholder="Choose a username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" class="form-input" placeholder="Choose a password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail">Email Address</label>
+                        <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerName">Full Name</label>
+                        <input type="text" id="registerName" class="form-input" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerCompany">Company Name</label>
+                        <input type="text" id="registerCompany" class="form-input" placeholder="Enter your company name" required>
+                    </div>
+                    
+                    <button class="btn-auth" onclick="handleLandlordRegister()">Create Account</button>
+                    
+                    <div class="auth-help">
+                        Already have an account? <span class="auth-link" onclick="switchAuthTab('login')">Login here</span>
+                    </div>
+                </div>
+                
+                <div class="auth-footer">
+                    <button class="btn-back" onclick="goBackToLanding()">← Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landlord Dashboard (shown after login) -->
+        <div id="dashboardSection" class="dashboard-section" style="display: none;">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="dashboard-title">RoomieLink</div>
+                <div class="user-welcome">
+                    <span id="welcomeText">Welcome, User!</span>
+                    <button class="profile-btn" id="profileBtn">U</button>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number" id="activeListings">5</div>
+                    <div class="stat-label">Active Listings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalApplications">23</div>
+                    <div class="stat-label">Applications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="unreadMessages">12</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="listings">My Listings</button>
+                <button class="nav-tab" data-tab="applications">Applications</button>
+                <button class="nav-tab" data-tab="messages">Messages</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-container">
+                <!-- Listings Management Tab -->
+                <div id="listings" class="tab-content active">
+                    <div class="section-header">
+                        <h3>Property Listings</h3>
+                        <button class="btn-primary" onclick="createListing()">+ Add Listing</button>
+                    </div>
+                    <div id="landlordListings" class="listings-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- Applications Tab -->
+                <div id="applications" class="tab-content">
+                    <div class="section-header">
+                        <h3>Student Applications</h3>
+                        <div class="filter-badges">
+                            <button class="filter-badge active" data-status="all">All</button>
+                            <button class="filter-badge" data-status="pending">Pending</button>
+                            <button class="filter-badge" data-status="approved">Approved</button>
+                            <button class="filter-badge" data-status="rejected">Rejected</button>
+                        </div>
+                    </div>
+                    <div id="applicationsList" class="applications-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="messages" class="tab-content">
+                    <div class="section-header">
+                        <h3>Messages</h3>
+                    </div>
+                    <div id="messagesList" class="messages-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Property Button -->
+            <button class="add-property-btn" onclick="createListing()">🏠</button>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-profile">
+                        <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+                        <div class="sidebar-info">
+                            <div class="sidebar-name" id="sidebarName">User</div>
+                            <div class="sidebar-role" id="sidebarRole">Property Manager</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-menu">
+                    <div class="menu-item" onclick="navigateToSection('dashboard')">
+                        <span class="menu-icon">📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="menu-item" onclick="navigateToSection('properties')">
+                        <span class="menu-icon">🏠</span>
+                        <span>Properties</span>
+                    </div>
+                    <div class="menu-item" onclick="navigateToSection('tenants')">
+                        <span class="menu-icon">👥</span>
+                        <span>Tenants</span>
+                    </div>
+                    <div class="menu-item" onclick="navigateToSection('analytics')">
+                        <span class="menu-icon">📈</span>
+                        <span>Analytics</span>
+                    </div>
+                    <div class="menu-item" onclick="navigateToSection('payments')">
+                        <span class="menu-icon">💰</span>
+                        <span>Payments</span>
+                    </div>
+                    <div class="menu-item" onclick="navigateToSection('settings')">
+                        <span class="menu-icon">⚙️</span>
+                        <span>Settings</span>
+                    </div>
+                    <div class="menu-item logout" onclick="handleLandlordLogout()">
+                        <span class="menu-icon">🚪</span>
+                        <span>Logout</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overlay -->
+            <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/landlord.js"></script>
+</body>
+</html>

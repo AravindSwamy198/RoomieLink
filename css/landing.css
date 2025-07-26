@@ -1,0 +1,457 @@
+/* Landing Page Full-Screen Design */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 100%;
+    width: 100vw;
+    min-height: 100vh;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hero Section */
+.header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 80px 40px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo {
+    font-size: 64px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    letter-spacing: -2px;
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 24px;
+    margin-bottom: 60px;
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.4;
+}
+
+/* User Type Selection */
+.user-type-selection {
+    padding: 60px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    min-height: 50vh;
+}
+
+.user-type-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 50px 40px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+    min-width: 320px;
+    max-width: 400px;
+    flex: 1;
+}
+
+.user-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.6s;
+}
+
+.user-type-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 1);
+}
+
+.user-type-card:hover::before {
+    left: 100%;
+}
+
+.user-type-card:active {
+    transform: translateY(-8px) scale(0.98);
+}
+
+.user-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.user-type-card:hover .user-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.student-icon {
+    background: linear-gradient(135deg, #ff9a8b, #fad0c4);
+    box-shadow: 0 8px 32px rgba(255, 154, 139, 0.4);
+}
+
+.landlord-icon {
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    box-shadow: 0 8px 32px rgba(168, 237, 234, 0.4);
+}
+
+.user-type-info {
+    text-align: center;
+    z-index: 1;
+}
+
+.user-type-info h3 {
+    font-size: 32px;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.user-type-card:hover .user-type-info h3 {
+    color: #667eea;
+}
+
+.user-type-info p {
+    color: #7f8c8d;
+    font-size: 18px;
+    margin: 0;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
+/* Features Section */
+.features-preview {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 60px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-item {
+    text-align: center;
+    color: white;
+    padding: 30px 20px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.feature-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.feature-description {
+    font-size: 14px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+/* Footer */
+.footer {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 30px 40px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+}
+
+.footer p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Navigation Hint */
+.navigation-hint {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.navigation-hint.show {
+    opacity: 1;
+}
+
+/* Animations */
+.container {
+    animation: pageLoad 0.8s ease-out;
+}
+
+@keyframes pageLoad {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.user-type-card {
+    animation: cardSlideIn 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.user-type-card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.user-type-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Particles Background Effect */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .logo {
+        font-size: 56px;
+    }
+    
+    .subtitle {
+        font-size: 22px;
+    }
+    
+    .user-type-selection {
+        padding: 40px 30px;
+        gap: 30px;
+    }
+    
+    .user-type-card {
+        min-width: 280px;
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 60px 20px;
+    }
+    
+    .logo {
+        font-size: 48px;
+    }
+    
+    .subtitle {
+        font-size: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .user-type-selection {
+        padding: 30px 20px;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .user-type-card {
+        min-width: auto;
+        width: 100%;
+        max-width: 400px;
+        padding: 35px 25px;
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .user-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+    
+    .user-type-info h3 {
+        font-size: 28px;
+    }
+    
+    .user-type-info p {
+        font-size: 16px;
+    }
+    
+    .features-preview {
+        padding: 40px 20px;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .footer {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 40px 15px;
+    }
+    
+    .logo {
+        font-size: 36px;
+    }
+    
+    .subtitle {
+        font-size: 18px;
+    }
+    
+    .user-type-selection {
+        padding: 20px 15px;
+    }
+    
+    .user-type-card {
+        padding: 25px 20px;
+    }
+    
+    .user-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    
+    .user-type-info h3 {
+        font-size: 24px;
+    }
+    
+    .user-type-info p {
+        font-size: 14px;
+    }
+}
+
+/* High-resolution displays */
+@media (min-width: 1400px) {
+    .header {
+        padding: 100px 60px;
+    }
+    
+    .logo {
+        font-size: 72px;
+    }
+    
+    .subtitle {
+        font-size: 28px;
+    }
+    
+    .user-type-selection {
+        padding: 80px 60px;
+        gap: 60px;
+    }
+    
+    .user-type-card {
+        padding: 60px 50px;
+        min-width: 380px;
+    }
+    
+    .user-icon {
+        width: 140px;
+        height: 140px;
+        font-size: 56px;
+    }
+    
+    .user-type-info h3 {
+        font-size: 36px;
+    }
+    
+    .user-type-info p {
+        font-size: 20px;
+    }
+}

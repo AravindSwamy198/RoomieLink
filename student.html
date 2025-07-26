@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - RoomieLink</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/student.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login/Register Section -->
+        <div id="authSection" class="auth-section">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">👩‍🎓 RoomieLink</div>
+                    <div class="auth-subtitle" id="authSubtitle">Student Login</div>
+                </div>
+                
+                <!-- Tab Toggle -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</button>
+                    <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <button class="btn-auth" onclick="handleLogin()">Login</button>
+                    
+                    <div class="auth-help">
+                        Don't have an account? <span class="auth-link" onclick="switchAuthTab('register')">Register here</span>
+                    </div>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" class="form-input" placeholder="Choose a username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" class="form-input" placeholder="Choose a password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail">Email Address</label>
+                        <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerName">Full Name</label>
+                        <input type="text" id="registerName" class="form-input" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerUniversity">University</label>
+                        <select id="registerUniversity" class="form-select" required>
+                            <option value="">Select your university</option>
+                            <option value="northeastern">Northeastern University</option>
+                            <option value="harvard">Harvard University</option>
+                            <option value="mit">MIT</option>
+                            <option value="bu">Boston University</option>
+                            <option value="emerson">Emerson College</option>
+                            <option value="suffolk">Suffolk University</option>
+                            <option value="nyu">NYU</option>
+                            <option value="columbia">Columbia University</option>
+                            <option value="stanford">Stanford University</option>
+                            <option value="berkeley">UC Berkeley</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn-auth" onclick="handleRegister()">Create Account</button>
+                    
+                    <div class="auth-help">
+                        Already have an account? <span class="auth-link" onclick="switchAuthTab('login')">Login here</span>
+                    </div>
+                </div>
+                
+                <div class="auth-footer">
+                    <button class="btn-back" onclick="goBackToLanding()">← Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Dashboard (shown after login) -->
+        <div id="dashboardSection" class="dashboard-section" style="display: none;">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="dashboard-title">RoomieLink</div>
+                <div class="user-welcome">
+                    <span id="welcomeText">Welcome, User!</span>
+                    <button class="profile-btn" id="profileBtn">U</button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="roommates">Roommate Posts</button>
+                <button class="nav-tab" data-tab="listings">Listings</button>
+                <button class="nav-tab" data-tab="messages">Messages</button>
+                <button class="nav-tab" data-tab="saved">Saved Posts</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-container">
+                <!-- Roommate Posts Tab -->
+                <div id="roommates" class="tab-content active">
+                    <!-- Roommate Filters -->
+                    <div class="filters-section" id="roommateFilters">
+                        <div class="filter-row">
+                            <select class="filter-select" id="cityFilter">
+                                <option value="">Select City</option>
+                                <option value="boston">Boston</option>
+                                <option value="newyork">New York</option>
+                                <option value="sanfrancisco">San Francisco</option>
+                                <option value="losangeles">Los Angeles</option>
+                                <option value="chicago">Chicago</option>
+                                <option value="philadelphia">Philadelphia</option>
+                            </select>
+                            <select class="filter-select" id="universityFilter">
+                                <option value="">Select University</option>
+                                <!-- Universities will be populated dynamically based on city -->
+                            </select>
+                            <select class="filter-select" id="localityFilter">
+                                <option value="">Select Locality</option>
+                                <!-- Localities will be populated dynamically based on city -->
+                            </select>
+                        </div>
+                        <div class="filter-row">
+                            <select class="filter-select" id="priceFilter">
+                                <option value="">Price Range</option>
+                                <option value="under-500">Under $500</option>
+                                <option value="500-700">$500 - $700</option>
+                                <option value="700-800">$700 - $800</option>
+                                <option value="800-1200">$800 - $1200</option>
+                                <option value="1200-plus">$1200+</option>
+                            </select>
+                            <select class="filter-select" id="roomTypeFilter">
+                                <option value="">Room Preference</option>
+                                <option value="private">Private Room</option>
+                                <option value="shared">Shared Room</option>
+                            </select>
+                            <select class="filter-select" id="genderFilter">
+                                <option value="">Gender Preference</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="mixed">Mixed</option>
+                            </select>
+                        </div>
+                        <div class="filter-row">
+                            <select class="filter-select" id="foodFilter">
+                                <option value="">Food Preference</option>
+                                <option value="vegetarian">Vegetarian</option>
+                                <option value="non-vegetarian">Non-Vegetarian</option>
+                            </select>
+                            <button class="btn-clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
+                        </div>
+                    </div>
+                    
+                    <div id="roommatesList" class="posts-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- Listings Tab -->
+                <div id="listings" class="tab-content">
+                    <!-- Listing Filters (Only City + Locality) -->
+                    <div class="filters-section" id="listingFilters">
+                        <div class="filter-row">
+                            <select class="filter-select" id="listingCityFilter">
+                                <option value="">Select City</option>
+                                <option value="boston">Boston</option>
+                                <option value="newyork">New York</option>
+                                <option value="sanfrancisco">San Francisco</option>
+                                <option value="losangeles">Los Angeles</option>
+                                <option value="chicago">Chicago</option>
+                                <option value="philadelphia">Philadelphia</option>
+                            </select>
+                            <select class="filter-select" id="listingLocalityFilter">
+                                <option value="">Select Locality</option>
+                                <!-- Localities will be populated dynamically based on city -->
+                            </select>
+                            <button class="btn-clear-filters" onclick="clearListingFilters()">Clear Filters</button>
+                        </div>
+                    </div>
+                    
+                    <div id="listingsList" class="posts-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- Messages Tab (No Filters) -->
+                <div id="messages" class="tab-content">
+                    <div id="messagesList" class="messages-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- Saved Posts Tab (No Filters) -->
+                <div id="saved" class="tab-content">
+                    <div id="savedPostsList" class="posts-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Post Button -->
+            <button class="add-post-btn" onclick="createPost()">+</button>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-profile">
+                        <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+                        <div class="sidebar-info">
+                            <div class="sidebar-name" id="sidebarName">User</div>
+                            <div class="sidebar-university" id="sidebarUniversity">University</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-menu">
+                    <div class="menu-item" onclick="showMyPosts()">
+                        <span class="menu-icon">📋</span>
+                        <span>My Posts</span>
+                    </div>
+                    <div class="menu-item" onclick="showSavedPosts()">
+                        <span class="menu-icon">⭐</span>
+                        <span>Saved Items</span>
+                        <span class="saved-count" id="savedCount">0</span>
+                    </div>
+                    <div class="menu-item" onclick="showNotifications()">
+                        <span class="menu-icon">🔔</span>
+                        <span>Notifications</span>
+                    </div>
+                    <div class="menu-item" onclick="showProfile()">
+                        <span class="menu-icon">👤</span>
+                        <span>Profile</span>
+                    </div>
+                    <div class="menu-item" onclick="showSettings()">
+                        <span class="menu-icon">⚙️</span>
+                        <span>Settings</span>
+                    </div>
+                    <div class="menu-item" onclick="showHelp()">
+                        <span class="menu-icon">❓</span>
+                        <span>Help & Support</span>
+                    </div>
+                    <div class="menu-item logout" onclick="handleLogout()">
+                        <span class="menu-icon">🚪</span>
+                        <span>Logout</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overlay -->
+            <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/student.js"></script>
+</body>
+</html>

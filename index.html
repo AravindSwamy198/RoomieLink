@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomieLink - Student Housing Platform</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">RoomieLink</div>
+            <div class="subtitle">Find your perfect student housing</div>
+        </div>
+        
+        <div class="user-type-selection">
+            <div class="user-type-card" onclick="navigateToStudent()">
+                <div class="user-icon student-icon">👩‍🎓</div>
+                <div class="user-type-info">
+                    <h3>Student</h3>
+                    <p>Find roommates and housing</p>
+                </div>
+            </div>
+            
+            <div class="user-type-card" onclick="navigateToLandlord()">
+                <div class="user-icon landlord-icon">🏠</div>
+                <div class="user-type-info">
+                    <h3>Landlord</h3>
+                    <p>List your properties</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features Preview -->
+        <div class="features-preview">
+            <div class="feature-item">
+                <span class="feature-icon">🔍</span>
+                <div class="feature-title">Smart Filters</div>
+                <div class="feature-description">Find exactly what you're looking for with advanced filtering options</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">💬</span>
+                <div class="feature-title">Secure Messaging</div>
+                <div class="feature-description">Connect safely with verified students and landlords</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🏠</span>
+                <div class="feature-title">Verified Listings</div>
+                <div class="feature-description">Browse trusted property listings from verified landlords</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">⚡</span>
+                <div class="feature-title">Instant Matching</div>
+                <div class="feature-description">Get matched with compatible roommates and properties instantly</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 RoomieLink. Connecting students nationwide.</p>
+        </div>
+        
+        <!-- Navigation Hint -->
+        <div class="navigation-hint" id="navigationHint">
+            Use keyboard: Press 1 for Student, 2 for Landlord, or Tab to navigate
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/landing.js"></script>
+</body>
+</html>
