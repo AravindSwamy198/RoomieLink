@@ -97,15 +97,15 @@
             <!-- Stats Section -->
             <div class="stats-section">
                 <div class="stat-card">
-                    <div class="stat-number" id="activeListings">5</div>
+                    <div class="stat-number" id="activeListings">0</div>
                     <div class="stat-label">Active Listings</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="totalApplications">23</div>
+                    <div class="stat-number" id="totalApplications">0</div>
                     <div class="stat-label">Applications</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="unreadMessages">12</div>
+                    <div class="stat-number" id="unreadMessages">0</div>
                     <div class="stat-label">Messages</div>
                 </div>
             </div>
@@ -172,17 +172,9 @@
                     </div>
                 </div>
                 <div class="sidebar-menu">
-                    <div class="menu-item" onclick="navigateToSection('dashboard')">
-                        <span class="menu-icon">📊</span>
-                        <span>Dashboard</span>
-                    </div>
                     <div class="menu-item" onclick="navigateToSection('properties')">
                         <span class="menu-icon">🏠</span>
                         <span>Properties</span>
-                    </div>
-                    <div class="menu-item" onclick="navigateToSection('tenants')">
-                        <span class="menu-icon">👥</span>
-                        <span>Tenants</span>
                     </div>
                     <div class="menu-item" onclick="navigateToSection('analytics')">
                         <span class="menu-icon">📈</span>
@@ -205,6 +197,101 @@
 
             <!-- Overlay -->
             <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+        </div>
+    </div>
+
+    <!-- Property Listing Modal -->
+    <div id="propertyModal" class="property-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Property Listing</h2>
+                <button class="modal-close" onclick="hidePropertyModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="propertyForm" onsubmit="handlePropertySubmit(event)">
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="propertyTitle">Property Title <span class="required">*</span></label>
+                                <input type="text" id="propertyTitle" class="form-input" placeholder="e.g., Modern 2BR Apartment" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="monthlyRent">Monthly Rent ($) <span class="required">*</span></label>
+                                <input type="number" id="monthlyRent" class="form-input" placeholder="1200" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row single">
+                            <div class="form-group">
+                                <label for="propertyAddress">Address <span class="required">*</span></label>
+                                <input type="text" id="propertyAddress" class="form-input" placeholder="123 Commonwealth Ave, Boston, MA" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bedrooms">Bedrooms <span class="required">*</span></label>
+                                <select id="bedrooms" class="form-select" required>
+                                    <option value="">Select</option>
+                                    <option value="Studio">Studio</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5+">5+</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="bathrooms">Bathrooms <span class="required">*</span></label>
+                                <select id="bathrooms" class="form-select" required>
+                                    <option value="">Select</option>
+                                    <option value="1">1</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2">2</option>
+                                    <option value="2.5">2.5</option>
+                                    <option value="3">3</option>
+                                    <option value="3.5">3.5</option>
+                                    <option value="4+">4+</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="squareFeet">Square Feet</label>
+                                <input type="number" id="squareFeet" class="form-input" placeholder="750">
+                            </div>
+                            <div class="form-group">
+                                <label for="propertyStatus">Status</label>
+                                <select id="propertyStatus" class="form-select">
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row single">
+                            <div class="form-group">
+                                <label for="amenities">Amenities (separate with commas)</label>
+                                <input type="text" id="amenities" class="form-input" placeholder="WiFi, Parking, Laundry, Near Campus">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row single">
+                            <div class="form-group">
+                                <label for="propertyDescription">Description</label>
+                                <textarea id="propertyDescription" class="form-textarea" rows="4" placeholder="Describe your property..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="hidePropertyModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">+ Add Listing</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
