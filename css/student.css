@@ -387,7 +387,7 @@
     }
 }
 
-/* Filters Section - Inside Tabs */
+/* Filters Section - Inside Tabs - Updated for 4 rows */
 .filters-section {
     background: #fff;
     padding: 25px 40px;
@@ -409,6 +409,7 @@
 
 .filter-row:last-child {
     margin-bottom: 0;
+    justify-content: center;
 }
 
 .filter-select {
@@ -544,7 +545,7 @@
 
 .post-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     margin-bottom: 18px;
 }
@@ -578,6 +579,7 @@
     font-size: 14px;
     color: #7f8c8d;
     margin: 0;
+    line-height: 1.4;
 }
 
 .post-content {
@@ -906,6 +908,21 @@
     color: #7b1fa2;
 }
 
+.tag.term {
+    background: #e1f5fe;
+    color: #0277bd;
+}
+
+.tag.graduation {
+    background: #f1f8e9;
+    color: #558b2f;
+}
+
+.tag.academic {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
 /* Loading States */
 .post-card.loading,
 .listing-card.loading {
@@ -929,7 +946,146 @@
     animation: spin 1s linear infinite;
 }
 
-/* Responsive Design */
+/* Bottom Popup Ad Styles */
+.bottom-popup-ad {
+    position: fixed;
+    bottom: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    z-index: 10000;
+    transition: bottom 0.5s ease-out;
+}
+
+.bottom-popup-ad.show {
+    bottom: 20px;
+}
+
+.bottom-popup-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 2px solid #667eea;
+    position: relative;
+    overflow: hidden;
+}
+
+.bottom-popup-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    z-index: 10001;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-popup-close:hover {
+    background: white;
+    color: #333;
+    transform: rotate(90deg);
+}
+
+.bottom-popup-body {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.bottom-popup-icon {
+    font-size: 40px;
+    animation: bounce 2s infinite;
+    flex-shrink: 0;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+.bottom-popup-text {
+    flex: 1;
+}
+
+.bottom-popup-text h4 {
+    font-size: 18px;
+    margin: 0 0 5px 0;
+    font-weight: 700;
+    color: white;
+}
+
+.bottom-popup-text p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.95;
+    color: white;
+}
+
+.price-highlight {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-popup-upgrade {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.btn-popup-upgrade:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    background: #f8f9ff;
+}
+
+/* Bottom Popup Animation Exit */
+.bottom-popup-ad.closing {
+    animation: bottomPopupSlideOut 0.4s ease-in forwards;
+}
+
+@keyframes bottomPopupSlideOut {
+    from {
+        bottom: 20px;
+        opacity: 1;
+    }
+    to {
+        bottom: -200px;
+        opacity: 0;
+    }
+}
+
+/* Responsive Design - Updated for 4 filter rows */
 @media (max-width: 1200px) {
     .auth-container {
         padding: 40px 30px;
@@ -1041,6 +1197,36 @@
         width: 60px;
         height: 60px;
         font-size: 24px;
+    }
+    
+    /* Mobile Bottom Popup */
+    .bottom-popup-ad {
+        width: 95%;
+    }
+    
+    .bottom-popup-body {
+        padding: 15px;
+        gap: 12px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .bottom-popup-icon {
+        font-size: 32px;
+    }
+    
+    .bottom-popup-text h4 {
+        font-size: 16px;
+    }
+    
+    .bottom-popup-text p {
+        font-size: 13px;
+    }
+    
+    .btn-popup-upgrade {
+        padding: 10px 16px;
+        font-size: 13px;
+        width: 100%;
     }
 }
 

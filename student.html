@@ -111,6 +111,7 @@
                 <button class="nav-tab active" data-tab="roommates">Roommate Posts</button>
                 <button class="nav-tab" data-tab="listings">Listings</button>
                 <button class="nav-tab" data-tab="messages">Messages</button>
+                <button class="nav-tab" data-tab="myposts">My Posts</button>
                 <button class="nav-tab" data-tab="saved">Saved Posts</button>
             </div>
 
@@ -166,6 +167,27 @@
                                 <option value="vegetarian">Vegetarian</option>
                                 <option value="non-vegetarian">Non-Vegetarian</option>
                             </select>
+                            <select class="filter-select" id="termFilter">
+                                <option value="">Academic Term</option>
+                                <option value="spring-2024">Spring 2024</option>
+                                <option value="summer-2024">Summer 2024</option>
+                                <option value="fall-2024">Fall 2024</option>
+                                <option value="spring-2025">Spring 2025</option>
+                                <option value="summer-2025">Summer 2025</option>
+                                <option value="fall-2025">Fall 2025</option>
+                                <option value="spring-2026">Spring 2026</option>
+                            </select>
+                            <select class="filter-select" id="graduationFilter">
+                                <option value="">Graduation Year</option>
+                                <option value="2024">Class of 2024</option>
+                                <option value="2025">Class of 2025</option>
+                                <option value="2026">Class of 2026</option>
+                                <option value="2027">Class of 2027</option>
+                                <option value="2028">Class of 2028</option>
+                                <option value="grad">Graduate Student</option>
+                            </select>
+                        </div>
+                        <div class="filter-row">
                             <button class="btn-clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
                         </div>
                     </div>
@@ -205,6 +227,13 @@
                 <!-- Messages Tab (No Filters) -->
                 <div id="messages" class="tab-content">
                     <div id="messagesList" class="messages-container">
+                        <!-- Dynamic content loaded here -->
+                    </div>
+                </div>
+
+                <!-- My Posts Tab -->
+                <div id="myposts" class="tab-content">
+                    <div id="myPostsList" class="posts-container">
                         <!-- Dynamic content loaded here -->
                     </div>
                 </div>
@@ -266,12 +295,26 @@
 
             <!-- Overlay -->
             <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
-        </div>
     </div>
 
     <!-- Loading Spinner -->
     <div id="loadingSpinner" class="loading-spinner">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Back to School Bottom Popup Ad -->
+    <div id="backToSchoolAd" class="bottom-popup-ad">
+        <div class="bottom-popup-content">
+            <button class="bottom-popup-close" onclick="closePopupAd()">&times;</button>
+            <div class="bottom-popup-body">
+                <div class="bottom-popup-icon">📚</div>
+                <div class="bottom-popup-text">
+                    <h4>🏠 Find Your Perfect Roommate!</h4>
+                    <p>Join <span class="price-highlight">5,000+ students</span> who found their ideal housing match on RoomieLink</p>
+                </div>
+                <button class="btn-popup-upgrade" onclick="upgradeAccount()">Get Premium</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/common.js"></script>

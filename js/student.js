@@ -4,26 +4,22 @@
 const Auth = {
     currentUser: null,
     
-    // Initialize user system
     initializeUserSystem() {
         const existingUsers = Utils.storage.get('users');
         if (!existingUsers) {
             Utils.storage.set('users', { students: {}, landlords: {} });
             console.log('User system initialized');
         } else {
-            console.log('User system loaded -', Object.keys(existingUsers.students || {}).length, 'students,', Object.keys(existingUsers.landlords || {}).length, 'landlords');
+            console.log('User system loaded');
         }
     },
 
-    // Get all users
     getAllUsers() {
         return Utils.storage.get('users') || { students: {}, landlords: {} };
     },
 
-    // Check if username exists
     usernameExists(username, userType) {
         const users = this.getAllUsers();
-        // Ensure the userType object exists
         if (!users[userType]) {
             users[userType] = {};
             Utils.storage.set('users', users);
@@ -31,10 +27,8 @@ const Auth = {
         return !!users[userType][username];
     },
 
-    // Check if email exists
     emailExists(email, userType) {
         const users = this.getAllUsers();
-        // Ensure the userType object exists
         if (!users[userType]) {
             users[userType] = {};
             Utils.storage.set('users', users);
@@ -45,24 +39,15 @@ const Auth = {
         return false;
     },
 
-    // Create new student account
     createStudentAccount(username, password, email, name, university) {
         const users = this.getAllUsers();
         
-        // Ensure students object exists
-        if (!users.students) {
-            users.students = {};
-        }
-        if (!users.landlords) {
-            users.landlords = {};
-        }
+        if (!users.students) users.students = {};
+        if (!users.landlords) users.landlords = {};
         
-        // Check if username already exists
         if (this.usernameExists(username, 'students')) {
             throw new Error('Username already exists');
         }
-
-        // Check if email already exists
         if (this.emailExists(email, 'students')) {
             throw new Error('Email already registered');
         }
@@ -90,6 +75,7 @@ const Auth = {
             userType: 'student',
             initials: name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2),
             savedPosts: [],
+            myPosts: [],
             messages: [],
             preferences: {},
             createdAt: new Date().toISOString(),
@@ -103,10 +89,8 @@ const Auth = {
         return newStudent;
     },
 
-    // Login student
     loginStudent(username, password) {
         const users = this.getAllUsers();
-        // Ensure students object exists
         if (!users.students) {
             users.students = {};
             Utils.storage.set('users', users);
@@ -122,7 +106,6 @@ const Auth = {
             throw new Error('Invalid password');
         }
 
-        // Update last login
         student.lastLogin = new Date().toISOString();
         users.students[username] = student;
         Utils.storage.set('users', users);
@@ -134,7 +117,6 @@ const Auth = {
         return student;
     },
 
-    // Get current user
     getCurrentUser() {
         if (!this.currentUser) {
             this.currentUser = Utils.storage.get('currentUser');
@@ -142,19 +124,16 @@ const Auth = {
         return this.currentUser;
     },
 
-    // Logout
     logout() {
         console.log('User logged out:', this.currentUser?.username);
         this.currentUser = null;
         Utils.storage.remove('currentUser');
     },
 
-    // Check if user is logged in
     isLoggedIn() {
         return !!this.getCurrentUser();
     },
 
-    // Update user data
     updateUser(userData) {
         const users = this.getAllUsers();
         users.students[userData.username] = userData;
@@ -163,32 +142,120 @@ const Auth = {
         this.currentUser = userData;
         Utils.storage.set('currentUser', userData);
     }
+}
+
+// Profile dropdown functions
+function toggleProfileDropdown() {
+    // Remove any existing profile dropdown
+    const existingDropdown = document.getElementById('profileDropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
+        return;
+    }
+    
+    const user = Auth.getCurrentUser();
+    if (!user) return;
+    
+    // Create profile dropdown
+    const dropdownHTML = `
+        <div id="profileDropdown" style="position: fixed; top: 70px; right: 40px; background: white; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); border: 1px solid #e9ecef; z-index: 1000; min-width: 250px;">
+            <div style="padding: 20px; border-bottom: 1px solid #e9ecef;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">${user.initials}</div>
+                    <div>
+                        <div style="font-weight: 600; color: #2c3e50; font-size: 16px;">${user.name}</div>
+                        <div style="font-size: 13px; color: #7f8c8d;">${user.universityName}</div>
+                        <div style="font-size: 12px; color: #7f8c8d;">${user.email}</div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 10px 0;">
+                <button onclick="viewFullProfile()" style="width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+                    <span style="font-size: 16px;">👤</span>
+                    View Profile
+                </button>
+                <button onclick="showMyPosts(); closeProfileDropdown();" style="width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+                    <span style="font-size: 16px;">📋</span>
+                    My Posts (${user.myPosts ? user.myPosts.length : 0})
+                </button>
+                <button onclick="showSavedPosts(); closeProfileDropdown();" style="width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+                    <span style="font-size: 16px;">⭐</span>
+                    Saved Posts (${user.savedPosts.length})
+                </button>
+                <button onclick="showSettings(); closeProfileDropdown();" style="width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+                    <span style="font-size: 16px;">⚙️</span>
+                    Settings
+                </button>
+                <hr style="margin: 10px 0; border: none; border-top: 1px solid #e9ecef;">
+                <button onclick="handleLogout(); closeProfileDropdown();" style="width: 100%; padding: 12px 20px; background: none; border: none; text-align: left; cursor: pointer; color: #e74c3c; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#fdf2f2'" onmouseout="this.style.background='none'">
+                    <span style="font-size: 16px;">🚪</span>
+                    Logout
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', dropdownHTML);
+    
+    // Close dropdown when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', handleClickOutsideProfile);
+    }, 100);
+}
+
+function closeProfileDropdown() {
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown) {
+        dropdown.remove();
+    }
+    document.removeEventListener('click', handleClickOutsideProfile);
+}
+
+function handleClickOutsideProfile(event) {
+    const dropdown = document.getElementById('profileDropdown');
+    const profileBtn = document.getElementById('profileBtn');
+    
+    if (dropdown && !dropdown.contains(event.target) && event.target !== profileBtn) {
+        closeProfileDropdown();
+    }
+}
+
+function viewFullProfile() {
+    const user = Auth.getCurrentUser();
+    if (user) {
+        const userStats = `Profile Information:
+
+Username: ${user.username}
+Name: ${user.name}
+Email: ${user.email}
+University: ${user.universityName}
+Account Created: ${new Date(user.createdAt).toLocaleDateString()}
+Last Login: ${new Date(user.lastLogin).toLocaleDateString()}
+Saved Posts: ${user.savedPosts.length}
+My Posts: ${user.myPosts ? user.myPosts.length : 0}
+User Type: ${user.userType}`;
+        alert(userStats);
+    }
+    closeProfileDropdown();
 };
 
-// Student-specific state management
+// Student app state
 const StudentApp = {
     currentTab: 'roommates',
-    currentView: 'auth', // 'auth' or 'dashboard'
+    currentView: 'auth',
     filters: {
-        // Roommate filters
-        city: '',
-        university: '',
-        locality: '',
-        price: '',
-        roomType: '',
-        gender: '',
-        food: '',
-        // Listing filters
-        listingCity: '',
-        listingLocality: ''
+        city: '', university: '', locality: '', price: '', roomType: '',
+        gender: '', food: '', term: '', graduation: '',
+        listingCity: '', listingLocality: ''
     },
     posts: [],
     listings: [],
     messages: [],
+    myPosts: [],
     isLoading: false
 };
 
-// City-based data
+// City data
 const CityData = {
     boston: {
         universities: [
@@ -199,198 +266,279 @@ const CityData = {
             { value: 'emerson', name: 'Emerson College' },
             { value: 'suffolk', name: 'Suffolk University' }
         ],
-        localities: [
-            'Back Bay', 'North End', 'Cambridge', 'Somerville', 'Allston', 
-            'Brighton', 'Fenway', 'South End', 'Beacon Hill', 'Mission Hill',
-            'Jamaica Plain', 'Charlestown', 'East Boston'
-        ]
+        localities: ['Back Bay', 'North End', 'Cambridge', 'Somerville', 'Allston', 'Brighton', 'Fenway', 'South End', 'Beacon Hill', 'Mission Hill', 'Jamaica Plain', 'Charlestown', 'East Boston']
     },
     newyork: {
         universities: [
             { value: 'nyu', name: 'New York University' },
             { value: 'columbia', name: 'Columbia University' },
-            { value: 'fordham', name: 'Fordham University' },
-            { value: 'pace', name: 'Pace University' },
-            { value: 'newschool', name: 'The New School' }
+            { value: 'fordham', name: 'Fordham University' }
         ],
-        localities: [
-            'Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'East Village', 
-            'SoHo', 'Williamsburg', 'Greenwich Village', 'Upper East Side',
-            'Upper West Side', 'Midtown', 'Lower East Side', 'Chelsea'
-        ]
+        localities: ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'East Village', 'SoHo', 'Williamsburg', 'Greenwich Village', 'Upper East Side', 'Upper West Side', 'Midtown', 'Lower East Side', 'Chelsea']
     },
     sanfrancisco: {
         universities: [
             { value: 'stanford', name: 'Stanford University' },
-            { value: 'berkeley', name: 'UC Berkeley' },
-            { value: 'ucsf', name: 'UCSF' },
-            { value: 'sfsu', name: 'San Francisco State University' }
+            { value: 'berkeley', name: 'UC Berkeley' }
         ],
-        localities: [
-            'Mission', 'Castro', 'SOMA', 'Nob Hill', 'Pacific Heights',
-            'Haight-Ashbury', 'Richmond', 'Sunset', 'Marina', 'Presidio',
-            'Financial District', 'Chinatown'
-        ]
+        localities: ['Mission', 'Castro', 'SOMA', 'Nob Hill', 'Pacific Heights', 'Haight-Ashbury', 'Richmond', 'Sunset', 'Marina']
     },
     losangeles: {
         universities: [
             { value: 'ucla', name: 'UCLA' },
-            { value: 'usc', name: 'USC' },
-            { value: 'caltech', name: 'Caltech' },
-            { value: 'lmu', name: 'Loyola Marymount University' }
+            { value: 'usc', name: 'USC' }
         ],
-        localities: [
-            'Westwood', 'Hollywood', 'Beverly Hills', 'Santa Monica',
-            'Venice', 'Downtown LA', 'Koreatown', 'Silver Lake',
-            'West Hollywood', 'Culver City', 'Pasadena'
-        ]
+        localities: ['Westwood', 'Hollywood', 'Beverly Hills', 'Santa Monica', 'Venice', 'Downtown LA', 'Koreatown']
     },
     chicago: {
         universities: [
             { value: 'uchicago', name: 'University of Chicago' },
-            { value: 'northwestern', name: 'Northwestern University' },
-            { value: 'depaul', name: 'DePaul University' },
-            { value: 'uic', name: 'University of Illinois Chicago' }
+            { value: 'northwestern', name: 'Northwestern University' }
         ],
-        localities: [
-            'Lincoln Park', 'Wicker Park', 'River North', 'Logan Square',
-            'Lakeview', 'Hyde Park', 'Bucktown', 'Old Town',
-            'West Loop', 'Gold Coast', 'Pilsen'
-        ]
+        localities: ['Lincoln Park', 'Wicker Park', 'River North', 'Logan Square', 'Lakeview', 'Hyde Park']
     },
     philadelphia: {
         universities: [
             { value: 'upenn', name: 'University of Pennsylvania' },
-            { value: 'temple', name: 'Temple University' },
-            { value: 'drexel', name: 'Drexel University' },
-            { value: 'villanova', name: 'Villanova University' }
+            { value: 'temple', name: 'Temple University' }
         ],
-        localities: [
-            'Center City', 'University City', 'Northern Liberties',
-            'Fishtown', 'Society Hill', 'Queen Village', 'Rittenhouse Square',
-            'Graduate Hospital', 'Old City', 'Fairmount'
-        ]
+        localities: ['Center City', 'University City', 'Northern Liberties', 'Fishtown', 'Society Hill']
     }
 };
 
-// Sample Posts Data
+// Enhanced Sample Posts Data with new filters
 const sampleRoommatesPosts = [
     {
         id: 1,
         user: { name: 'Michael Johnson', avatar: 'MJ', university: 'Northeastern University' },
         content: 'CS major looking for a roommate to share studio apartment near Northeastern. Love gaming and cooking. $850/month split.',
-        tags: ['CS Student', 'Gaming', 'Near NEU', '$850/month'],
+        tags: ['CS Student', 'Gaming', 'Near NEU', '$850/month', 'Fall 2024', 'Class of 2025'],
         timestamp: '2 days ago',
         city: 'boston', university: 'northeastern', locality: 'fenway',
-        price: '800-1200', roomType: 'shared', gender: 'male', food: 'non-vegetarian'
+        price: '800-1200', roomType: 'shared', gender: 'male', food: 'non-vegetarian',
+        term: 'fall-2024', graduation: '2025'
     },
     {
         id: 2,
         user: { name: 'Jessica Wang', avatar: 'JW', university: 'Northeastern University' },
         content: 'Female engineering student seeking female roommate in Mission Hill. Clean, studious, and vegetarian. $750/month.',
-        tags: ['Engineering', 'Female Only', 'Mission Hill', 'Clean'],
+        tags: ['Engineering', 'Female Only', 'Mission Hill', 'Clean', 'Spring 2025', 'Class of 2026'],
         timestamp: '1 day ago',
         city: 'boston', university: 'northeastern', locality: 'mission-hill',
-        price: '700-800', roomType: 'private', gender: 'female', food: 'vegetarian'
+        price: '700-800', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'spring-2025', graduation: '2026'
     },
     {
         id: 3,
         user: { name: 'Carlos Rivera', avatar: 'CR', university: 'Northeastern University' },
         content: 'International business student looking for affordable shared room near campus. Budget $450. Open to any gender roommates.',
-        tags: ['International', 'Business', 'Affordable', 'Near Campus'],
+        tags: ['International', 'Business', 'Affordable', 'Near Campus', 'Fall 2024', 'Class of 2027'],
         timestamp: '3 hours ago',
         city: 'boston', university: 'northeastern', locality: 'fenway',
-        price: 'under-500', roomType: 'shared', gender: 'mixed', food: 'non-vegetarian'
+        price: 'under-500', roomType: 'shared', gender: 'mixed', food: 'non-vegetarian',
+        term: 'fall-2024', graduation: '2027'
     },
     {
         id: 4,
         user: { name: 'Aisha Patel', avatar: 'AP', university: 'Northeastern University' },
         content: 'Graduate student in data science seeking quiet female roommate for 2BR in Back Bay. Vegetarian, non-smoker. $1400/month.',
-        tags: ['Data Science', 'Graduate', 'Quiet', 'Back Bay'],
+        tags: ['Data Science', 'Graduate', 'Quiet', 'Back Bay', 'Spring 2025', 'Graduate Student'],
         timestamp: '5 hours ago',
         city: 'boston', university: 'northeastern', locality: 'back-bay',
-        price: '1200-plus', roomType: 'private', gender: 'female', food: 'vegetarian'
+        price: '1200-plus', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'spring-2025', graduation: 'grad'
     },
     {
         id: 5,
         user: { name: 'Tyler Brooks', avatar: 'TB', university: 'Northeastern University' },
         content: 'Male co-op student looking for temporary housing (6 months) in Allston. Private room preferred. $900/month.',
-        tags: ['Co-op Student', 'Temporary', 'Allston', 'Private Room'],
+        tags: ['Co-op Student', 'Temporary', 'Allston', 'Private Room', 'Summer 2024', 'Class of 2025'],
         timestamp: '1 hour ago',
         city: 'boston', university: 'northeastern', locality: 'allston',
-        price: '800-1200', roomType: 'private', gender: 'male', food: 'non-vegetarian'
+        price: '800-1200', roomType: 'private', gender: 'male', food: 'non-vegetarian',
+        term: 'summer-2024', graduation: '2025'
     },
     {
         id: 6,
         user: { name: 'Sophia Kim', avatar: 'SK', university: 'Northeastern University' },
         content: 'Pharmacy student seeking roommates for 3BR house in Jamaica Plain. LGBTQ+ friendly, vegetarian household. $700/month.',
-        tags: ['Pharmacy', 'LGBTQ+ Friendly', 'Jamaica Plain', 'Vegetarian'],
+        tags: ['Pharmacy', 'LGBTQ+ Friendly', 'Jamaica Plain', 'Vegetarian', 'Fall 2025', 'Class of 2028'],
         timestamp: '6 hours ago',
         city: 'boston', university: 'northeastern', locality: 'jamaica-plain',
-        price: '700-800', roomType: 'private', gender: 'mixed', food: 'vegetarian'
+        price: '700-800', roomType: 'private', gender: 'mixed', food: 'vegetarian',
+        term: 'fall-2025', graduation: '2028'
     },
     {
         id: 7,
         user: { name: 'Sarah Miller', avatar: 'SM', university: 'Harvard University' },
         content: 'Graduate student seeking female roommate for 2BR apartment near Harvard Square. Clean, quiet, non-smoker. $750/month.',
-        tags: ['Graduate', 'Female Only', 'Harvard Square', 'Non-Smoker'],
+        tags: ['Graduate', 'Female Only', 'Harvard Square', 'Non-Smoker', 'Spring 2025', 'Graduate Student'],
         timestamp: '2 hours ago',
         city: 'boston', university: 'harvard', locality: 'cambridge',
-        price: '700-800', roomType: 'private', gender: 'female', food: 'vegetarian'
+        price: '700-800', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'spring-2025', graduation: 'grad'
     },
     {
         id: 8,
         user: { name: 'James Wilson', avatar: 'JW', university: 'Harvard University' },
         content: 'Law student looking for shared accommodation in Cambridge. Budget under $500. Open to male roommates.',
-        tags: ['Law Student', 'Budget Friendly', 'Cambridge', 'Male'],
+        tags: ['Law Student', 'Budget Friendly', 'Cambridge', 'Male', 'Fall 2024', 'Class of 2026'],
         timestamp: '4 hours ago',
         city: 'boston', university: 'harvard', locality: 'cambridge',
-        price: 'under-500', roomType: 'shared', gender: 'male', food: 'non-vegetarian'
+        price: 'under-500', roomType: 'shared', gender: 'male', food: 'non-vegetarian',
+        term: 'fall-2024', graduation: '2026'
     },
     {
         id: 9,
         user: { name: 'Raj Kumar', avatar: 'RK', university: 'MIT' },
         content: 'International PhD student looking for vegetarian roommates in Cambridge. Budget $650. Quiet and studious.',
-        tags: ['PhD', 'International', 'Vegetarian', 'Cambridge'],
+        tags: ['PhD', 'International', 'Vegetarian', 'Cambridge', 'Spring 2024', 'Graduate Student'],
         timestamp: '5 hours ago',
         city: 'boston', university: 'mit', locality: 'cambridge',
-        price: '500-700', roomType: 'shared', gender: 'mixed', food: 'vegetarian'
+        price: '500-700', roomType: 'shared', gender: 'mixed', food: 'vegetarian',
+        term: 'spring-2024', graduation: 'grad'
     },
     {
         id: 10,
         user: { name: 'Elena Rodriguez', avatar: 'ER', university: 'MIT' },
         content: 'Computer science student seeking female roommate for luxury apartment in Back Bay. $1500/month, fully furnished.',
-        tags: ['Computer Science', 'Luxury', 'Back Bay', 'Furnished'],
+        tags: ['Computer Science', 'Luxury', 'Back Bay', 'Furnished', 'Fall 2025', 'Class of 2027'],
         timestamp: '8 hours ago',
         city: 'boston', university: 'mit', locality: 'back-bay',
-        price: '1200-plus', roomType: 'private', gender: 'female', food: 'non-vegetarian'
+        price: '1200-plus', roomType: 'private', gender: 'female', food: 'non-vegetarian',
+        term: 'fall-2025', graduation: '2027'
     },
     {
         id: 11,
         user: { name: 'Anna Lee', avatar: 'AL', university: 'Boston University' },
         content: 'Need 2 roommates for 4BR house in Allston. Great location, 15 mins to campus. $650/month each. Pet-friendly!',
-        tags: ['Pet Friendly', 'Allston', '4BR House', 'Multiple Roommates'],
+        tags: ['Pet Friendly', 'Allston', '4BR House', 'Multiple Roommates', 'Spring 2025', 'Class of 2025'],
         timestamp: '1 day ago',
         city: 'boston', university: 'bu', locality: 'allston',
-        price: '500-700', roomType: 'private', gender: 'mixed', food: 'non-vegetarian'
+        price: '500-700', roomType: 'private', gender: 'mixed', food: 'non-vegetarian',
+        term: 'spring-2025', graduation: '2025'
     },
     {
         id: 12,
         user: { name: 'David Thompson', avatar: 'DT', university: 'Boston University' },
         content: 'Junior looking for male roommate in Brighton. Have a car, love sports. Private room available. $800/month.',
-        tags: ['Junior', 'Brighton', 'Car Owner', 'Sports'],
+        tags: ['Junior', 'Brighton', 'Car Owner', 'Sports', 'Fall 2024', 'Class of 2025'],
         timestamp: '12 hours ago',
         city: 'boston', university: 'bu', locality: 'brighton',
-        price: '700-800', roomType: 'private', gender: 'male', food: 'non-vegetarian'
+        price: '700-800', roomType: 'private', gender: 'male', food: 'non-vegetarian',
+        term: 'fall-2024', graduation: '2025'
     },
     {
         id: 13,
         user: { name: 'Emily Chen', avatar: 'EC', university: 'Emerson College' },
         content: 'Film student seeking creative female roommate in Back Bay. Artist-friendly space, vegetarian household. $1300/month.',
-        tags: ['Film Student', 'Creative', 'Artist-Friendly', 'Back Bay'],
+        tags: ['Film Student', 'Creative', 'Artist-Friendly', 'Back Bay', 'Spring 2025', 'Class of 2024'],
         timestamp: '3 days ago',
         city: 'boston', university: 'emerson', locality: 'back-bay',
-        price: '1200-plus', roomType: 'private', gender: 'female', food: 'vegetarian'
+        price: '1200-plus', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'spring-2025', graduation: '2024'
+    },
+    // 5 NEW POSTS - PEOPLE WITH HOUSING LOOKING FOR ROOMMATES
+    {
+        id: 14,
+        user: { name: 'Marcus Chen', avatar: 'MC', university: 'NYU' },
+        content: 'Have a 2BR apartment in Manhattan! Looking for responsible roommate to share. Great location near campus. $1400/month split.',
+        tags: ['Have Housing', 'Manhattan', '2BR Apartment', 'Near Campus', 'Responsible', 'Fall 2024', 'Class of 2026'],
+        timestamp: '30 minutes ago',
+        city: 'newyork', university: 'nyu', locality: 'manhattan',
+        price: '1200-plus', roomType: 'private', gender: 'mixed', food: 'non-vegetarian',
+        term: 'fall-2024', graduation: '2026'
+    },
+    {
+        id: 15,
+        user: { name: 'Lisa Park', avatar: 'LP', university: 'Stanford University' },
+        content: 'I have a beautiful house near Stanford campus! Seeking 2 female roommates. Fully furnished, great for grad students. $1100/month each.',
+        tags: ['Have Housing', 'Near Stanford', 'Fully Furnished', 'Female Only', 'Grad Students', 'Spring 2025', 'Graduate Student'],
+        timestamp: '2 hours ago',
+        city: 'sanfrancisco', university: 'stanford', locality: 'palo-alto',
+        price: '800-1200', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'spring-2025', graduation: 'grad'
+    },
+    {
+        id: 16,
+        user: { name: 'Alex Rodriguez', avatar: 'AR', university: 'UCLA' },
+        content: 'Got a sweet 3BR place in Westwood! Need 2 chill roommates who love movies and good food. Walking distance to UCLA. $950/month.',
+        tags: ['Have Housing', 'Westwood', '3BR House', 'Movie Lovers', 'Walking Distance', 'Summer 2024', 'Class of 2025'],
+        timestamp: '4 hours ago',
+        city: 'losangeles', university: 'ucla', locality: 'westwood',
+        price: '800-1200', roomType: 'private', gender: 'mixed', food: 'non-vegetarian',
+        term: 'summer-2024', graduation: '2025'
+    },
+    {
+        id: 17,
+        user: { name: 'Priya Singh', avatar: 'PS', university: 'University of Chicago' },
+        content: 'Have a cozy 2BR apartment in Hyde Park! Looking for a studious female roommate. Quiet building, perfect for academics. $825/month.',
+        tags: ['Have Housing', 'Hyde Park', 'Studious', 'Female Only', 'Quiet Building', 'Academic', 'Fall 2024', 'Class of 2027'],
+        timestamp: '1 hour ago',
+        city: 'chicago', university: 'uchicago', locality: 'hyde-park',
+        price: '800-1200', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'fall-2024', graduation: '2027'
+    },
+    {
+        id: 18,
+        user: { name: 'Jake Martinez', avatar: 'JM', university: 'Temple University' },
+        content: 'I have a spacious loft in Center City! Seeking roommate who appreciates urban living. Great for networking students. $775/month.',
+        tags: ['Have Housing', 'Center City', 'Spacious Loft', 'Urban Living', 'Networking', 'Spring 2025', 'Class of 2025'],
+        timestamp: '3 hours ago',
+        city: 'philadelphia', university: 'temple', locality: 'center-city',
+        price: '700-800', roomType: 'private', gender: 'mixed', food: 'non-vegetarian',
+        term: 'spring-2025', graduation: '2025'
+    },
+    // 5 NEW POSTS - PEOPLE LOOKING FOR ROOMMATES (NEED HOUSING)
+    {
+        id: 19,
+        user: { name: 'Maya Patel', avatar: 'MP', university: 'Columbia University' },
+        content: 'Medical student seeking roommate for shared housing in Upper West Side. Need quiet study environment. Budget $1300/month.',
+        tags: ['Medical Student', 'Upper West Side', 'Shared Housing', 'Quiet Study', 'Need Housing', 'Fall 2024', 'Graduate Student'],
+        timestamp: '45 minutes ago',
+        city: 'newyork', university: 'columbia', locality: 'upper-west-side',
+        price: '1200-plus', roomType: 'shared', gender: 'female', food: 'vegetarian',
+        term: 'fall-2024', graduation: 'grad'
+    },
+    {
+        id: 20,
+        user: { name: 'Kevin Wong', avatar: 'KW', university: 'UC Berkeley' },
+        content: 'Computer science junior looking for roommate to find housing together in Berkeley. Tech enthusiast, budget $1000/month.',
+        tags: ['Computer Science', 'Junior', 'Tech Enthusiast', 'Berkeley', 'Need Housing', 'Spring 2025', 'Class of 2026'],
+        timestamp: '1.5 hours ago',
+        city: 'sanfrancisco', university: 'berkeley', locality: 'berkeley',
+        price: '800-1200', roomType: 'shared', gender: 'male', food: 'non-vegetarian',
+        term: 'spring-2025', graduation: '2026'
+    },
+    {
+        id: 21,
+        user: { name: 'Zoe Adams', avatar: 'ZA', university: 'USC' },
+        content: 'Film major seeking creative roommate to find housing near USC. Love indie films and coffee. Budget $1200/month.',
+        tags: ['Film Major', 'Creative', 'Near USC', 'Indie Films', 'Coffee Lover', 'Need Housing', 'Fall 2025', 'Class of 2027'],
+        timestamp: '2.5 hours ago',
+        city: 'losangeles', university: 'usc', locality: 'downtown-la',
+        price: '1200-plus', roomType: 'private', gender: 'female', food: 'vegetarian',
+        term: 'fall-2025', graduation: '2027'
+    },
+    {
+        id: 22,
+        user: { name: 'Ryan Foster', avatar: 'RF', university: 'Northwestern University' },
+        content: 'Business student looking for roommate to apartment hunt together in Lincoln Park. Social, outgoing, budget $900/month.',
+        tags: ['Business Student', 'Lincoln Park', 'Social', 'Outgoing', 'Apartment Hunt', 'Need Housing', 'Spring 2024', 'Class of 2025'],
+        timestamp: '6 hours ago',
+        city: 'chicago', university: 'northwestern', locality: 'lincoln-park',
+        price: '800-1200', roomType: 'shared', gender: 'male', food: 'non-vegetarian',
+        term: 'spring-2024', graduation: '2025'
+    },
+    {
+        id: 23,
+        user: { name: 'Isabella Torres', avatar: 'IT', university: 'Drexel University' },
+        content: 'Architecture student seeking roommate to find housing in University City. Love design and sustainability. Budget $650/month.',
+        tags: ['Architecture', 'University City', 'Design', 'Sustainability', 'Need Housing', 'Summer 2025', 'Class of 2026'],
+        timestamp: '8 hours ago',
+        city: 'philadelphia', university: 'drexel', locality: 'university-city',
+        price: '500-700', roomType: 'shared', gender: 'female', food: 'vegetarian',
+        term: 'summer-2025', graduation: '2026'
     }
 ];
 
@@ -505,27 +653,52 @@ const SaveManager = {
     }
 };
 
-// Initialize Application
+// Popup functions
+function showBackToSchoolAd() {
+    const popup = document.getElementById('backToSchoolAd');
+    if (popup) {
+        popup.classList.add('show');
+        setTimeout(() => {
+            if (popup.classList.contains('show')) {
+                closePopupAd();
+            }
+        }, 12000);
+    }
+}
+
+function closePopupAd() {
+    const popup = document.getElementById('backToSchoolAd');
+    if (popup) {
+        popup.classList.add('closing');
+        setTimeout(() => {
+            popup.classList.remove('show', 'closing');
+        }, 400);
+    }
+}
+
+function upgradeAccount() {
+    closePopupAd();
+    Notifications.success('Upgrade feature coming soon!');
+}
+
+// Initialize
 function initializeStudentApp() {
-    // Initialize user system
     Auth.initializeUserSystem();
     
-    // Load sample data
     StudentApp.posts = [...sampleRoommatesPosts];
     StudentApp.listings = [...sampleListings];
     StudentApp.messages = [...sampleMessages];
-
-    // Check if user is already logged in
+    
     if (Auth.isLoggedIn()) {
-        console.log('User already logged in:', Auth.getCurrentUser().username);
+        const user = Auth.getCurrentUser();
+        StudentApp.myPosts = user.myPosts || [];
         showDashboard();
     } else {
-        console.log('No user logged in, showing auth form');
         showAuth();
     }
 }
 
-// Authentication Functions
+// Auth functions
 function switchAuthTab(tabType) {
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
@@ -563,14 +736,6 @@ function handleLogin() {
         showDashboard();
     } catch (error) {
         Notifications.error(error.message);
-        
-        // If user not found, suggest registration
-        if (error.message === 'Username not found') {
-            setTimeout(() => {
-                switchAuthTab('register');
-                document.getElementById('registerUsername').value = username;
-            }, 2000);
-        }
     }
 }
 
@@ -605,11 +770,6 @@ function handleRegister() {
         showDashboard();
     } catch (error) {
         Notifications.error(error.message);
-        
-        if (error.message === 'Username already exists') {
-            switchAuthTab('login');
-            document.getElementById('loginUsername').value = username;
-        }
     }
 }
 
@@ -643,27 +803,31 @@ function showDashboard() {
     setupStudentEventListeners();
     loadRoommatePosts();
     SaveManager.updateSavedCount();
+    
+    setTimeout(() => {
+        showBackToSchoolAd();
+    }, 2000);
 }
 
 function updateUserInterface() {
     const user = Auth.getCurrentUser();
     if (!user) return;
 
-    // Update welcome text
     document.getElementById('welcomeText').textContent = `Welcome, ${user.name.split(' ')[0]}!`;
-    
-    // Update profile button
     document.getElementById('profileBtn').textContent = user.initials;
-    
-    // Update sidebar
     document.getElementById('sidebarAvatar').textContent = user.initials;
     document.getElementById('sidebarName').textContent = user.name;
     document.getElementById('sidebarUniversity').textContent = user.universityName;
+    
+    // Add click event to profile button
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', toggleProfileDropdown);
+    }
 }
 
-// Event Listeners Setup
+// Event listeners
 function setupStudentEventListeners() {
-    // Roommate filter event listeners
     document.getElementById('cityFilter')?.addEventListener('change', handleCityFilter);
     document.getElementById('universityFilter')?.addEventListener('change', handleUniversityFilter);
     document.getElementById('localityFilter')?.addEventListener('change', handleLocalityFilter);
@@ -671,15 +835,14 @@ function setupStudentEventListeners() {
     document.getElementById('roomTypeFilter')?.addEventListener('change', handleRoomTypeFilter);
     document.getElementById('genderFilter')?.addEventListener('change', handleGenderFilter);
     document.getElementById('foodFilter')?.addEventListener('change', handleFoodFilter);
+    document.getElementById('termFilter')?.addEventListener('change', handleTermFilter);
+    document.getElementById('graduationFilter')?.addEventListener('change', handleGraduationFilter);
 
-    // Listing filter event listeners
     document.getElementById('listingCityFilter')?.addEventListener('change', handleListingCityFilter);
     document.getElementById('listingLocalityFilter')?.addEventListener('change', handleListingLocalityFilter);
 
-    // Tab change listener
     document.addEventListener('tabChanged', handleTabChange);
 
-    // Navigation tab listeners
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             const tabName = e.target.getAttribute('data-tab');
@@ -688,17 +851,14 @@ function setupStudentEventListeners() {
     });
 }
 
-// Filter Handlers - Roommate Posts
+// Filter handlers
 function handleCityFilter(event) {
     const selectedCity = event.target.value;
     StudentApp.filters.city = selectedCity;
-    
     StudentApp.filters.university = '';
     StudentApp.filters.locality = '';
-    
     updateUniversityOptions(selectedCity);
     updateLocalityOptions(selectedCity);
-    
     applyFilters();
 }
 
@@ -732,13 +892,21 @@ function handleFoodFilter(event) {
     applyFilters();
 }
 
-// Filter Handlers - Listings
+// NEW FILTER HANDLERS
+function handleTermFilter(event) {
+    StudentApp.filters.term = event.target.value;
+    applyFilters();
+}
+
+function handleGraduationFilter(event) {
+    StudentApp.filters.graduation = event.target.value;
+    applyFilters();
+}
+
 function handleListingCityFilter(event) {
     const selectedCity = event.target.value;
     StudentApp.filters.listingCity = selectedCity;
-    
     StudentApp.filters.listingLocality = '';
-    
     updateListingLocalityOptions(selectedCity);
     applyFilters();
 }
@@ -748,7 +916,7 @@ function handleListingLocalityFilter(event) {
     applyFilters();
 }
 
-// Update dropdown options
+// Update dropdowns
 function updateUniversityOptions(cityValue) {
     const universitySelect = document.getElementById('universityFilter');
     if (!universitySelect) return;
@@ -797,7 +965,7 @@ function updateListingLocalityOptions(cityValue) {
     }
 }
 
-// Clear all roommate filters
+// Clear filters
 function clearAllFilters() {
     StudentApp.filters.city = '';
     StudentApp.filters.university = '';
@@ -806,6 +974,8 @@ function clearAllFilters() {
     StudentApp.filters.roomType = '';
     StudentApp.filters.gender = '';
     StudentApp.filters.food = '';
+    StudentApp.filters.term = '';
+    StudentApp.filters.graduation = '';
     
     document.getElementById('cityFilter').value = '';
     document.getElementById('universityFilter').innerHTML = '<option value="">Select University</option>';
@@ -814,12 +984,13 @@ function clearAllFilters() {
     document.getElementById('roomTypeFilter').value = '';
     document.getElementById('genderFilter').value = '';
     document.getElementById('foodFilter').value = '';
+    document.getElementById('termFilter').value = '';
+    document.getElementById('graduationFilter').value = '';
     
     applyFilters();
     Notifications.success('All filters cleared');
 }
 
-// Clear listing filters
 function clearListingFilters() {
     StudentApp.filters.listingCity = '';
     StudentApp.filters.listingLocality = '';
@@ -831,7 +1002,6 @@ function clearListingFilters() {
     Notifications.success('Listing filters cleared');
 }
 
-// Apply Filters
 function applyFilters() {
     if (StudentApp.currentTab === 'roommates') {
         loadRoommatePosts();
@@ -839,10 +1009,11 @@ function applyFilters() {
         loadListings();
     } else if (StudentApp.currentTab === 'saved') {
         loadSavedPosts();
+    } else if (StudentApp.currentTab === 'myposts') {
+        loadMyPosts();
     }
 }
 
-// Tab Change Handler
 function handleTabChange(event) {
     const tabName = event.detail;
     StudentApp.currentTab = tabName;
@@ -857,13 +1028,57 @@ function handleTabChange(event) {
         case 'messages':
             loadMessages();
             break;
+        case 'myposts':
+            loadMyPosts();
+            break;
         case 'saved':
             loadSavedPosts();
             break;
     }
 }
 
-// Load Functions
+// Tab switching
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    const clickedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    if (clickedTab) {
+        clickedTab.classList.add('active');
+    }
+    
+    StudentApp.currentTab = tabName;
+    
+    switch (tabName) {
+        case 'roommates':
+            loadRoommatePosts();
+            break;
+        case 'listings':
+            loadListings();
+            break;
+        case 'messages':
+            loadMessages();
+            break;
+        case 'myposts':
+            loadMyPosts();
+            break;
+        case 'saved':
+            loadSavedPosts();
+            break;
+    }
+}
+
+// Load functions
 function loadRoommatePosts() {
     const container = document.getElementById('roommatesList');
     if (!container) return;
@@ -878,6 +1093,8 @@ function loadRoommatePosts() {
         if (StudentApp.filters.roomType && post.roomType !== StudentApp.filters.roomType) return false;
         if (StudentApp.filters.gender && post.gender !== StudentApp.filters.gender) return false;
         if (StudentApp.filters.food && post.food !== StudentApp.filters.food) return false;
+        if (StudentApp.filters.term && post.term !== StudentApp.filters.term) return false;
+        if (StudentApp.filters.graduation && post.graduation !== StudentApp.filters.graduation) return false;
         return true;
     });
 
@@ -960,6 +1177,38 @@ function loadMessages() {
     }, 300);
 }
 
+function loadMyPosts() {
+    const container = document.getElementById('myPostsList');
+    if (!container) return;
+
+    showTabLoading('myPostsList');
+
+    const user = Auth.getCurrentUser();
+    const myPosts = user ? (user.myPosts || []) : [];
+
+    setTimeout(() => {
+        container.innerHTML = '';
+        
+        if (myPosts.length === 0) {
+            container.innerHTML = createEmptyState('No posts created yet', 'Click the + button to create your first post');
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="search-results-header">
+                You have <span class="results-count">${myPosts.length}</span> posts
+            </div>
+            <div class="posts-grid"></div>
+        `;
+
+        const grid = container.querySelector('.posts-grid');
+        myPosts.forEach(post => {
+            const postElement = createMyPostCard(post);
+            grid.appendChild(postElement);
+        });
+    }, 300);
+}
+
 function loadSavedPosts() {
     const container = document.getElementById('savedPostsList');
     if (!container) return;
@@ -1000,27 +1249,83 @@ function createRoommatePostCard(post, isSavedView = false) {
     const saveButtonText = SaveManager.isPostSaved(post.id) ? '💙 Saved' : '🤍 Save';
     const saveAction = SaveManager.isPostSaved(post.id) ? `unsavePost(${post.id})` : `savePost(${post.id})`;
     
+    // Format graduation display
+    const graduationDisplay = post.graduation === 'grad' ? 'Graduate Student' : `Class of ${post.graduation}`;
+    
+    // Format term display
+    const termDisplay = post.term ? post.term.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+    
     card.innerHTML = `
         <div class="post-header">
             <div class="post-avatar">${post.user.avatar}</div>
             <div class="post-info">
                 <h4>${post.user.name}</h4>
-                <p>${post.user.university} • ${post.timestamp}</p>
+                <p>${post.user.university} • ${graduationDisplay}<br>${termDisplay} • ${post.timestamp}</p>
             </div>
         </div>
         <div class="post-content">${post.content}</div>
         <div class="post-tags">
-            ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            ${post.tags.map(tag => {
+                let tagClass = 'tag';
+                if (tag.includes('$') || tag.includes('Affordable')) tagClass += ' price';
+                if (tag.includes('Male') || tag.includes('Female')) tagClass += ' gender';
+                if (tag.includes('Vegetarian') || tag.includes('Non-Vegetarian')) tagClass += ' food';
+                if (tag.includes('Class of') || tag.includes('Graduate')) tagClass += ' graduation';
+                if (tag.includes('2024') || tag.includes('2025') || tag.includes('Spring') || tag.includes('Fall') || tag.includes('Summer')) tagClass += ' term';
+                return `<span class="${tagClass}">${tag}</span>`;
+            }).join('')}
         </div>
         <div class="post-actions">
             <div class="post-actions-left">
-                <button class="btn-message" onclick="startMessage('${post.user.name}', 'roommate')">
+                <button class="btn-message" onclick="openConversationModal('${post.user.name}', 'roommate')">
                     💬 Message
                 </button>
             </div>
             <button class="btn-save ${SaveManager.isPostSaved(post.id) ? 'saved' : ''}" onclick="${saveAction}">
                 ${saveButtonText}
             </button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function createMyPostCard(post) {
+    const card = document.createElement('div');
+    card.className = 'post-card my-post-card';
+    card.setAttribute('data-post-id', post.id);
+    
+    const graduationDisplay = post.graduation === 'grad' ? 'Graduate Student' : `Class of ${post.graduation}`;
+    const termDisplay = post.term ? post.term.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+    
+    card.innerHTML = `
+        <div class="my-post-actions">
+            <button class="btn-edit-post" onclick="editPost(${post.id})">✏️</button>
+            <button class="btn-delete-post" onclick="deletePost(${post.id})">🗑️</button>
+        </div>
+        <div class="post-header">
+            <div class="post-avatar">${post.user.avatar}</div>
+            <div class="post-info">
+                <h4>${post.user.name}</h4>
+                <p>${post.user.university} • ${graduationDisplay}<br>${termDisplay} • ${post.timestamp}</p>
+            </div>
+        </div>
+        <div class="post-content">${post.content}</div>
+        <div class="post-tags">
+            ${post.tags.map(tag => {
+                let tagClass = 'tag';
+                if (tag.includes('$') || tag.includes('Affordable')) tagClass += ' price';
+                if (tag.includes('Male') || tag.includes('Female')) tagClass += ' gender';
+                if (tag.includes('Vegetarian') || tag.includes('Non-Vegetarian')) tagClass += ' food';
+                if (tag.includes('Class of') || tag.includes('Graduate')) tagClass += ' graduation';
+                if (tag.includes('2024') || tag.includes('2025') || tag.includes('Spring') || tag.includes('Fall') || tag.includes('Summer')) tagClass += ' term';
+                return `<span class="${tagClass}">${tag}</span>`;
+            }).join('')}
+        </div>
+        <div class="post-actions">
+            <div class="post-actions-left">
+                <span class="post-status">Views: ${post.views || 0} | Messages: ${post.messageCount || 0}</span>
+            </div>
         </div>
     `;
     
@@ -1044,7 +1349,7 @@ function createListingCard(listing) {
                 ${listing.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
             <div class="post-actions">
-                <button class="btn-message" onclick="startMessage('${listing.landlord}', 'listing')">
+                <button class="btn-message" onclick="openConversationModal('${listing.landlord}', 'listing')">
                     📞 Contact Landlord
                 </button>
             </div>
@@ -1067,8 +1372,7 @@ function createMessageItem(message) {
         <div class="message-preview">${message.lastMessage}</div>
     `;
     
-    item.addEventListener('click', () => openConversation(message));
-    
+    item.addEventListener('click', () => openConversationModal(message.contact, message.type || 'roommate'));
     return item;
 }
 
@@ -1080,6 +1384,287 @@ function createEmptyState(title, subtitle) {
             <p>${subtitle}</p>
         </div>
     `;
+}
+
+// Post creation functions
+function createPost() {
+    // Remove any existing modal
+    const existingModal = document.getElementById('createPostModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal HTML
+    const modalHTML = `
+        <div id="createPostModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10001;">
+            <div style="background: white; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="padding: 25px 30px 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px 20px 0 0;">
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 600;">Create New Post</h3>
+                    <button onclick="closeCreatePostModal()" style="background: none; border: none; font-size: 28px; color: rgba(255,255,255,0.8); cursor: pointer; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">&times;</button>
+                </div>
+                <div style="padding: 30px;">
+                    <form id="createPostForm">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Post Content *</label>
+                            <textarea id="postContent" placeholder="Describe what you're looking for, your preferences, budget, etc." required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; min-height: 120px; resize: vertical; font-family: inherit; box-sizing: border-box;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">City *</label>
+                                <select id="postCity" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select City</option>
+                                    <option value="boston">Boston</option>
+                                    <option value="newyork">New York</option>
+                                    <option value="sanfrancisco">San Francisco</option>
+                                    <option value="losangeles">Los Angeles</option>
+                                    <option value="chicago">Chicago</option>
+                                    <option value="philadelphia">Philadelphia</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Locality *</label>
+                                <select id="postLocality" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Locality</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Price Range *</label>
+                                <select id="postPrice" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Price Range</option>
+                                    <option value="under-500">Under $500</option>
+                                    <option value="500-700">$500 - $700</option>
+                                    <option value="700-800">$700 - $800</option>
+                                    <option value="800-1200">$800 - $1200</option>
+                                    <option value="1200-plus">$1200+</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Room Type *</label>
+                                <select id="postRoomType" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Room Type</option>
+                                    <option value="private">Private Room</option>
+                                    <option value="shared">Shared Room</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Gender Preference *</label>
+                                <select id="postGender" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Gender Preference</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="mixed">Mixed</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Food Preference *</label>
+                                <select id="postFood" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Food Preference</option>
+                                    <option value="vegetarian">Vegetarian</option>
+                                    <option value="non-vegetarian">Non-Vegetarian</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Academic Term *</label>
+                                <select id="postTerm" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Academic Term</option>
+                                    <option value="spring-2024">Spring 2024</option>
+                                    <option value="summer-2024">Summer 2024</option>
+                                    <option value="fall-2024">Fall 2024</option>
+                                    <option value="spring-2025">Spring 2025</option>
+                                    <option value="summer-2025">Summer 2025</option>
+                                    <option value="fall-2025">Fall 2025</option>
+                                    <option value="spring-2026">Spring 2026</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Graduation Year *</label>
+                                <select id="postGraduation" required style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                                    <option value="">Select Graduation Year</option>
+                                    <option value="2024">Class of 2024</option>
+                                    <option value="2025">Class of 2025</option>
+                                    <option value="2026">Class of 2026</option>
+                                    <option value="2027">Class of 2027</option>
+                                    <option value="2028">Class of 2028</option>
+                                    <option value="grad">Graduate Student</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px;">Additional Tags (optional)</label>
+                            <input type="text" id="postTags" placeholder="e.g. Pet Friendly, Quiet, Near Campus (separate with commas)" style="width: 100%; padding: 16px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; background: white; box-sizing: border-box;">
+                        </div>
+                    </form>
+                </div>
+                <div style="padding: 20px 30px; border-top: 1px solid #e9ecef; display: flex; gap: 15px; justify-content: flex-end; background: #f8f9fa; border-radius: 0 0 20px 20px;">
+                    <button onclick="closeCreatePostModal()" style="background: #f8f9fa; color: #666; border: 2px solid #e9ecef; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer;">Cancel</button>
+                    <button onclick="submitCreatePost()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">Create Post</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Setup city change listener
+    const citySelect = document.getElementById('postCity');
+    if (citySelect) {
+        citySelect.addEventListener('change', handlePostCityChange);
+    }
+}
+
+function closeCreatePostModal() {
+    const modal = document.getElementById('createPostModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function handlePostCityChange(event) {
+    updatePostLocalityOptions(event.target.value);
+}
+
+function updatePostLocalityOptions(cityValue) {
+    const localitySelect = document.getElementById('postLocality');
+    if (!localitySelect) return;
+    
+    localitySelect.innerHTML = '<option value="">Select Locality</option>';
+    
+    if (cityValue && CityData[cityValue]) {
+        CityData[cityValue].localities.forEach(locality => {
+            const option = document.createElement('option');
+            option.value = locality.toLowerCase().replace(/\s+/g, '-');
+            option.textContent = locality;
+            localitySelect.appendChild(option);
+        });
+    }
+}
+
+function submitCreatePost() {
+    const user = Auth.getCurrentUser();
+    
+    if (!user) {
+        Notifications.error('Please login to create posts');
+        return;
+    }
+    
+    const content = document.getElementById('postContent').value.trim();
+    const city = document.getElementById('postCity').value;
+    const locality = document.getElementById('postLocality').value;
+    const price = document.getElementById('postPrice').value;
+    const roomType = document.getElementById('postRoomType').value;
+    const gender = document.getElementById('postGender').value;
+    const food = document.getElementById('postFood').value;
+    const term = document.getElementById('postTerm').value;
+    const graduation = document.getElementById('postGraduation').value;
+    const additionalTags = document.getElementById('postTags').value.trim();
+    
+    if (!content || !city || !locality || !price || !roomType || !gender || !food || !term || !graduation) {
+        Notifications.error('Please fill in all required fields');
+        return;
+    }
+    
+    const tags = [];
+    
+    const priceLabels = {
+        'under-500': 'Under $500',
+        '500-700': '$500-$700',
+        '700-800': '$700-$800', 
+        '800-1200': '$800-$1200',
+        '1200-plus': '$1200+'
+    };
+    tags.push(priceLabels[price]);
+    
+    if (roomType === 'private') tags.push('Private Room');
+    if (roomType === 'shared') tags.push('Shared Room');
+    if (gender === 'male') tags.push('Male Only');
+    if (gender === 'female') tags.push('Female Only');
+    if (gender === 'mixed') tags.push('Mixed Gender');
+    if (food === 'vegetarian') tags.push('Vegetarian');
+    if (food === 'non-vegetarian') tags.push('Non-Vegetarian');
+    
+    const termDisplay = term.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    tags.push(termDisplay);
+    
+    const graduationDisplay = graduation === 'grad' ? 'Graduate Student' : `Class of ${graduation}`;
+    tags.push(graduationDisplay);
+    
+    const localityDisplay = locality.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    tags.push(localityDisplay);
+    
+    if (additionalTags) {
+        const extraTags = additionalTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        tags.push(...extraTags);
+    }
+    
+    const newPost = {
+        id: Utils.generateId(),
+        user: {
+            name: user.name,
+            avatar: user.initials,
+            university: user.universityName
+        },
+        content: content,
+        tags: tags,
+        timestamp: 'just now',
+        city: city,
+        university: user.university,
+        locality: locality,
+        price: price,
+        roomType: roomType,
+        gender: gender,
+        food: food,
+        term: term,
+        graduation: graduation,
+        views: 0,
+        messageCount: 0,
+        createdBy: user.username
+    };
+    
+    if (!user.myPosts) {
+        user.myPosts = [];
+    }
+    user.myPosts.unshift(newPost);
+    
+    StudentApp.posts.unshift(newPost);
+    StudentApp.myPosts = user.myPosts;
+    
+    Auth.updateUser(user);
+    
+    closeCreatePostModal();
+    Notifications.success('Post created successfully!');
+    
+    switchTab('myposts');
+}
+
+function editPost(postId) {
+    Notifications.info('Edit post feature coming soon!');
+}
+
+function deletePost(postId) {
+    if (confirm('Are you sure you want to delete this post?')) {
+        const user = Auth.getCurrentUser();
+        
+        user.myPosts = user.myPosts.filter(post => post.id !== postId);
+        StudentApp.posts = StudentApp.posts.filter(post => post.id !== postId);
+        StudentApp.myPosts = user.myPosts;
+        
+        Auth.updateUser(user);
+        loadMyPosts();
+        
+        Notifications.success('Post deleted successfully');
+    }
 }
 
 // Save/Unsave Functions
@@ -1122,7 +1707,7 @@ function unsavePost(postId) {
 
 // Sidebar Functions
 function showMyPosts() {
-    Notifications.info('My Posts feature coming soon!');
+    switchTab('myposts');
     closeSidebar();
 }
 
@@ -1139,8 +1724,7 @@ function showNotifications() {
 function showProfile() {
     const user = Auth.getCurrentUser();
     if (user) {
-        const userStats = `
-Profile Information:
+        const userStats = `Profile Information:
 
 Username: ${user.username}
 Name: ${user.name}
@@ -1149,8 +1733,8 @@ University: ${user.universityName}
 Account Created: ${new Date(user.createdAt).toLocaleDateString()}
 Last Login: ${new Date(user.lastLogin).toLocaleDateString()}
 Saved Posts: ${user.savedPosts.length}
-User Type: ${user.userType}
-        `;
+My Posts: ${user.myPosts ? user.myPosts.length : 0}
+User Type: ${user.userType}`;
         alert(userStats);
     }
     closeSidebar();
@@ -1168,51 +1752,235 @@ function showHelp() {
 
 // Message Functions
 function startMessage(contactName, type) {
-    const newMessage = {
-        id: Utils.generateId(),
-        contact: contactName,
-        lastMessage: `Hi! I'm interested in your ${type === 'roommate' ? 'roommate post' : 'property listing'}.`,
-        timestamp: Utils.getCurrentTime(),
-        type: type,
-        unread: false
-    };
-    
-    const existingIndex = StudentApp.messages.findIndex(msg => msg.contact === contactName);
-    
-    if (existingIndex >= 0) {
-        StudentApp.messages[existingIndex] = newMessage;
-    } else {
-        StudentApp.messages.unshift(newMessage);
-    }
-    
-    switchTab('messages');
-    Notifications.success(`Message sent to ${contactName}!`);
+    openConversationModal(contactName, type);
 }
 
 function openConversation(messageData) {
-    messageData.unread = false;
-    Notifications.info(`Opening conversation with ${messageData.contact}`);
+    openConversationModal(messageData.contact, messageData.type || 'roommate');
 }
 
-// Post Creation
-function createPost() {
-    const options = [
-        'Looking for roommate',
-        'Looking for housing',
-        'Offering room share'
-    ];
+function openConversationModal(contactName, type) {
+    // Remove any existing conversation modal
+    const existingModal = document.getElementById('conversationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
     
-    const choice = prompt(`What type of post would you like to create?\n\n${options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}\n\nEnter 1, 2, or 3:`);
+    // Find existing conversation history
+    const existingConversation = StudentApp.messages.find(msg => msg.contact === contactName);
+    const chatHistory = existingConversation ? (existingConversation.chatHistory || []) : [];
     
-    if (choice && choice >= 1 && choice <= 3) {
-        const postType = options[choice - 1];
-        Notifications.info(`${postType} post creation coming soon!`);
-    } else if (choice) {
-        Notifications.error('Invalid option selected');
+    // Create conversation modal HTML
+    const modalHTML = `
+        <div id="conversationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10002;">
+            <div style="background: white; border-radius: 20px; max-width: 500px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px 20px 0 0;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600;">💬 ${contactName}</h3>
+                        <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">${type === 'roommate' ? 'Roommate Discussion' : 'Property Inquiry'}</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="deleteChatHistory('${contactName}')" style="background: rgba(231, 76, 60, 0.2); border: none; font-size: 16px; color: white; cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" title="Delete Chat">🗑️</button>
+                        <button onclick="closeConversationModal()" style="background: none; border: none; font-size: 24px; color: rgba(255,255,255,0.8); cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">&times;</button>
+                    </div>
+                </div>
+                
+                <div id="conversationMessages" style="flex: 1; padding: 20px; background: #f8f9fa; overflow-y: auto; min-height: 300px; max-height: 400px;">
+                    ${chatHistory.length === 0 ? `
+                        <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea;">
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">You</div>
+                            <div style="color: #555;">Hi! I'm interested in your ${type === 'roommate' ? 'roommate post' : 'property listing'}. Could we discuss the details?</div>
+                            <div style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Just now</div>
+                        </div>
+                        
+                        <div style="background: #e8f4fd; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #3498db;">
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">${contactName}</div>
+                            <div style="color: #555;">Hello! Thanks for reaching out. I'd be happy to discuss the ${type === 'roommate' ? 'roommate arrangement' : 'property details'}. What would you like to know?</div>
+                            <div style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Just now</div>
+                        </div>
+                    ` : chatHistory.map(msg => `
+                        <div style="background: ${msg.sender === 'You' ? 'white' : '#e8f4fd'}; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid ${msg.sender === 'You' ? '#667eea' : '#3498db'};">
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">${msg.sender}</div>
+                            <div style="color: #555;">${msg.message}</div>
+                            <div style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">${msg.timestamp}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="padding: 20px; border-top: 1px solid #e9ecef; background: white; border-radius: 0 0 20px 20px;">
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <textarea id="messageInput" placeholder="Type your message..." style="flex: 1; padding: 12px 16px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 14px; min-height: 60px; max-height: 120px; resize: vertical; font-family: inherit; box-sizing: border-box;"></textarea>
+                        <button onclick="sendMessage('${contactName}')" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;">Send</button>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button onclick="closeConversationModal()" style="background: #f8f9fa; color: #666; border: 2px solid #e9ecef; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">Close Conversation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // If no existing conversation, create initial message
+    if (chatHistory.length === 0) {
+        const initialMessage = {
+            id: Utils.generateId(),
+            contact: contactName,
+            lastMessage: `Hi! I'm interested in your ${type === 'roommate' ? 'roommate post' : 'property listing'}.`,
+            timestamp: Utils.getCurrentTime(),
+            type: type,
+            unread: false,
+            chatHistory: [
+                {
+                    sender: 'You',
+                    message: `Hi! I'm interested in your ${type === 'roommate' ? 'roommate post' : 'property listing'}. Could we discuss the details?`,
+                    timestamp: 'Just now'
+                },
+                {
+                    sender: contactName,
+                    message: `Hello! Thanks for reaching out. I'd be happy to discuss the ${type === 'roommate' ? 'roommate arrangement' : 'property details'}. What would you like to know?`,
+                    timestamp: 'Just now'
+                }
+            ]
+        };
+        
+        const existingIndex = StudentApp.messages.findIndex(msg => msg.contact === contactName);
+        
+        if (existingIndex >= 0) {
+            StudentApp.messages[existingIndex] = initialMessage;
+        } else {
+            StudentApp.messages.unshift(initialMessage);
+        }
+    }
+    
+    // Focus on message input and scroll to bottom
+    setTimeout(() => {
+        const messageInput = document.getElementById('messageInput');
+        const messagesContainer = document.getElementById('conversationMessages');
+        if (messageInput) messageInput.focus();
+        if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 100);
+}
+
+function closeConversationModal() {
+    const modal = document.getElementById('conversationModal');
+    if (modal) {
+        modal.remove();
     }
 }
 
-// Utility Functions
+function sendMessage(contactName) {
+    const messageInput = document.getElementById('messageInput');
+    const messagesContainer = document.getElementById('conversationMessages');
+    
+    if (!messageInput || !messagesContainer) return;
+    
+    const messageText = messageInput.value.trim();
+    if (!messageText) {
+        Notifications.error('Please enter a message');
+        return;
+    }
+    
+    // Add new message to conversation display
+    const newMessageHTML = `
+        <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea;">
+            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">You</div>
+            <div style="color: #555;">${messageText}</div>
+            <div style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Just now</div>
+        </div>
+    `;
+    
+    messagesContainer.insertAdjacentHTML('beforeend', newMessageHTML);
+    
+    // Clear input
+    messageInput.value = '';
+    
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Update message history in storage
+    const existingMessageIndex = StudentApp.messages.findIndex(msg => msg.contact === contactName);
+    
+    if (existingMessageIndex >= 0) {
+        const conversation = StudentApp.messages[existingMessageIndex];
+        if (!conversation.chatHistory) {
+            conversation.chatHistory = [
+                {
+                    sender: 'You',
+                    message: `Hi! I'm interested in your ${conversation.type === 'roommate' ? 'roommate post' : 'property listing'}. Could we discuss the details?`,
+                    timestamp: 'Just now'
+                },
+                {
+                    sender: contactName,
+                    message: `Hello! Thanks for reaching out. I'd be happy to discuss the ${conversation.type === 'roommate' ? 'roommate arrangement' : 'property details'}. What would you like to know?`,
+                    timestamp: 'Just now'
+                }
+            ];
+        }
+        
+        // Add new message to history
+        conversation.chatHistory.push({
+            sender: 'You',
+            message: messageText,
+            timestamp: 'Just now'
+        });
+        
+        // Update last message
+        conversation.lastMessage = messageText;
+        conversation.timestamp = Utils.getCurrentTime();
+    }
+    
+    Notifications.success('Message sent!');
+    
+    // Simulate response after 2 seconds
+    setTimeout(() => {
+        const responseHTML = `
+            <div style="background: #e8f4fd; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #3498db;">
+                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">${contactName}</div>
+                <div style="color: #555;">Thanks for your message! Let me get back to you with more details soon.</div>
+                <div style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Just now</div>
+            </div>
+        `;
+        
+        if (messagesContainer) {
+            messagesContainer.insertAdjacentHTML('beforeend', responseHTML);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Add response to chat history
+            if (existingMessageIndex >= 0) {
+                const conversation = StudentApp.messages[existingMessageIndex];
+                conversation.chatHistory.push({
+                    sender: contactName,
+                    message: 'Thanks for your message! Let me get back to you with more details soon.',
+                    timestamp: 'Just now'
+                });
+                
+                conversation.lastMessage = 'Thanks for your message! Let me get back to you with more details soon.';
+                conversation.timestamp = Utils.getCurrentTime();
+            }
+        }
+    }, 2000);
+}
+
+function deleteChatHistory(contactName) {
+    if (confirm(`Are you sure you want to delete your conversation with ${contactName}?`)) {
+        // Remove from messages list
+        StudentApp.messages = StudentApp.messages.filter(msg => msg.contact !== contactName);
+        
+        // Close modal
+        closeConversationModal();
+        
+        // Reload messages if we're on messages tab
+        if (StudentApp.currentTab === 'messages') {
+            loadMessages();
+        }
+        
+        Notifications.success('Chat deleted successfully');
+    }
+}
+
 function showTabLoading(containerId) {
     const container = document.getElementById(containerId);
     if (container) {
@@ -1227,14 +1995,14 @@ function showTabLoading(containerId) {
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     if (document.querySelector('.container')) {
         initializeStudentApp();
     }
 });
 
-// Export for potential module use
+// Export for module use
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { StudentApp, Auth, SaveManager };
 }
